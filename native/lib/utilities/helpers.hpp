@@ -2,6 +2,7 @@
 #define HELPERS_HPP
 
 #include <string>
+#include <optional>
 
 template<class T>
 T BaseName(T const & path, T const & delims = "/\\")
@@ -20,6 +21,20 @@ struct ScannedApplication {
   std::string window_title;
   std::string procedure_path;
   std::string procedure_name;
+};
+
+struct ApplicationInfo {
+    std::string applicationName;
+    std::string windowTitle;
+};
+
+struct WindowDimensions {
+    int x, y, width, height;
+};
+
+struct ApplicationStatus {
+    std::string status; // "open", "hidden", "closed"
+    std::optional<WindowDimensions> dimensions;
 };
 
 #endif // HELPERS_HPP
