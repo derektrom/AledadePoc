@@ -8,14 +8,13 @@
         No scanned applications received
       </template>
       <template v-else>
-        Active applications with windows: {{ scannedApplications.length }}
-        <ul>
-          <li v-for="app in scannedApplications">
-            Application: {{ app.procedureName }}
-            <br>
-            Window Title: {{ app.windowTitle }}
-          </li>
-        </ul>
+          Active applications with windows: {{ scannedApplications.length }}
+          <label for="cars">Choose an application:</label>
+          <select id="appSeletor ">
+              <option v-for="app in scannedApplications" :key="app.procedureName" :value="app">
+                  {{ app.windowTitle }}
+              </option>
+          </select>
       </template>
     </p>
   </template>

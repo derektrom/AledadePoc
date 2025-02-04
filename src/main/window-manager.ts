@@ -40,7 +40,7 @@ export class WindowManager {
 
         this.setupIpcHandlers();
 
-        this.startApplicationStatusMonitor();
+        //this.startApplicationStatusMonitor();
     }
 
     private setupIpcHandlers() {
