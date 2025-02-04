@@ -50,9 +50,4 @@ void NativeApplicationStatus::MonitorApplication() {
     }
 }
 
-extern "C" Napi::Object Init(Napi::Env env, Napi::Object exports) {
-    WindowsApplicationStatus instance(env, exports); // Create instance
-    return exports; // Return the properly configured exports object
-}
-
 NODE_API_ADDON(NativeApplicationStatus)
