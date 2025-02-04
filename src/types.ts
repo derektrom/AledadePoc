@@ -1,14 +1,40 @@
-
-// requests renderer -> main
-
+// Requests from renderer -> main
 export const RenderRequestChannel = "render-request-channel";
 
-export type RenderRequests = "ApplicationScanner:StartListener" | "ApplicationScanner:StopListener";
+export type RenderRequests =
+    | "ApplicationScanner:StartListener"
+    | "ApplicationScanner:StopListener"
+    | "ApplicationStatus:ListenForStatus"
+    | "ApplicationStatus:StopListener";
 
-export type RenderMessage = {
-  request: RenderRequests
+export type RenderMessage =
+    | { request: "ApplicationScanner:StartListener" }
+    | { request: "ApplicationScanner:StopListener" }
+    | { request: "ApplicationStatus:ListenForStatus"; payload: ApplicationInfo }
+    | { request: "ApplicationStatus:StopListener" };
+
+// Responses / callbacks main -> renderer
+export const ApplicationScannerChannel = "applicationScannerChannel";
+export const ApplicationStatusChannel = "applicationStatusChannel";
+
+// Application Info Type
+export interface ApplicationInfo {
+    applicationName: string;
+    windowTitle: string;
 }
 
-// responses / callbacks main -> render
+// Application Status Type
+export interface WindowDimensions {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
-export const ApplicationScannerChannel = "applicationScannerChannel";
+export interface ApplicationStatus {
+    status: "open" | "hidden" | "closed";
+    dimensions?: WindowDimensions;
+}
+
+// Callback Type
+export type ApplicationStatusCallback = (status: ApplicationStatus) => void;

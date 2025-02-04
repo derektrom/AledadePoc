@@ -21,8 +21,9 @@ public:
             }
         );
     }
-    void MonitorApplication() override;
-    void StopListener();
+    void ListenForStatus(const Napi::CallbackInfo& info);
+    void StopListener(const Napi::CallbackInfo& info);
+    void MonitorApplication();
 
     static void EnqueueWindowEvent(
         HWINEVENTHOOK hWinEventHook,

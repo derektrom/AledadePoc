@@ -1,20 +1,19 @@
-
 ////
 
 // Application Scanner
 
 declare interface ScannedApplication {
-  windowTitle: string;
-  procedurePath: string;
-  procedureName: string;
+    windowTitle: string;
+    procedurePath: string;
+    procedureName: string;
 }
 
 declare type ScannedApplications = Array<ScannedApplication>;
 declare type ApplicationScannerCallback = (sa: ScannedApplications) => void;
 
 declare interface NativeApplicationScannerModule {
-  ListenForApplications: (callback: ApplicationScannerCallback) => void;
-  StopListener: () => void;
+    ListenForApplications: (callback: ApplicationScannerCallback) => void;
+    StopListener: () => void;
 }
 
 declare interface ApplicationInfo {
@@ -30,14 +29,17 @@ declare interface WindowDimensions {
 }
 
 declare interface ApplicationStatus {
-    status: string;
+    status: "open" | "hidden" | "closed";
     dimensions?: WindowDimensions;
 }
 
-declare type ApplicationStatusCallback = (sa: ApplicationInfo, sa: ApplicationStatus) => void;
+declare type ApplicationStatusCallback = (appInfo: ApplicationInfo, status: ApplicationStatus) => void;
 
 declare interface NativeApplicationStatusModule {
-    ListenForStatus: (callback: ApplicationStatusCallback) => void;
+    ListenForStatus: (
+        appInfo: ApplicationInfo,
+        callback: (status: ApplicationStatus) => void 
+    ) => void;
     StopListener: () => void;
 }
 
@@ -46,9 +48,8 @@ declare interface NativeApplicationStatusModule {
 // Native Modules
 
 declare type NativeModuleMap = {
-    "native-application-scanner": NativeApplicationScannerModule,
-    "native-application-status": NativeApplicationStatusModule
+    "native-application-scanner": NativeApplicationScannerModule;
+    "native-application-status": NativeApplicationStatusModule;
 };
 
 declare type NativeModuleTypes = keyof NativeModuleMap;
-

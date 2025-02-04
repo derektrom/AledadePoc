@@ -1,78 +1,108 @@
 import { BrowserWindow, globalShortcut, ipcMain } from "electron";
-import { ApplicationScannerChannel, RenderMessage, RenderRequestChannel } from "../types";
+import { ApplicationScannerChannel, ApplicationStatusChannel, RenderMessage, RenderRequestChannel } from "../types";
 import { LoadNativeModule } from "./utils";
+import { ApplicationStatus } from "./application-status";
 
 const NativeApplicationScanner = LoadNativeModule("native-application-scanner");
 
 export class WindowManager {
-  private window: BrowserWindow;
-  private readonly windowSize = { width: 720, height: 420 };
-  private applicationScannerIsRunning: boolean = false;
-  constructor(
-    preloadEntry: string,
-    staticEntry: string,
-    devEntry: string
-  ) {
+    private window: BrowserWindow;
+    private readonly windowSize = { width: 720, height: 420 };
+    private applicationScannerIsRunning: boolean = false;
+    private applicationStatusIsRunning: boolean = false;
 
-    // create the window
+    constructor(preloadEntry: string, staticEntry: string, devEntry: string) {
+        this.window = new BrowserWindow({
+            webPreferences: { preload: preloadEntry },
+            height: this.windowSize.height,
+            width: this.windowSize.width,
+            skipTaskbar: true,
+            show: true,
+            frame: true,
+            alwaysOnTop: true,
+            transparent: false,
+            resizable: true,
+            autoHideMenuBar: true,
+        });
 
-    this.window = new BrowserWindow({
-      webPreferences: { preload: preloadEntry},
-      height: this.windowSize.height,
-      width: this.windowSize.width,
-      skipTaskbar: true,
-      show: true,
-      frame: true,
-      alwaysOnTop: true,
-      transparent: false,
-      resizable: true,
-      autoHideMenuBar: true
-    });
+        if (devEntry) {
+            this.window.loadURL(devEntry);
+        } else {
+            this.window.loadFile(staticEntry);
+        }
 
-    // either load it from vite hot reload server, or static file
+        globalShortcut.register("Control+Shift+I", () => {
+            this.window.webContents.openDevTools({
+                mode: "detach",
+                activate: false,
+            });
+        });
 
-    if (devEntry) {
-      this.window.loadURL(devEntry);
-    } else {
-      this.window.loadFile(staticEntry);
+        this.setupIpcHandlers();
+
+        this.startApplicationStatusMonitor();
     }
 
-    // register a shortcut for opening up dev tools
+    private setupIpcHandlers() {
+        ipcMain.on(RenderRequestChannel, (_, message: RenderMessage) => {
+            switch (message.request) {
+                case "ApplicationScanner:StartListener":
+                    if (this.applicationScannerIsRunning) {
+                        NativeApplicationScanner.StopListener();
+                    }
+                    NativeApplicationScanner.ListenForApplications((scannedApplications) => {
+                        this.window.webContents.send(ApplicationScannerChannel, scannedApplications);
+                    });
+                    this.applicationScannerIsRunning = true;
+                    break;
 
-    globalShortcut.register("Control+Shift+I", () => {
-      this.window.webContents.openDevTools({
-        mode: "detach",
-        activate: false,
-      });
-    });
+                case "ApplicationScanner:StopListener":
+                    NativeApplicationScanner.StopListener();
+                    this.applicationScannerIsRunning = false;
+                    break;
 
-    // setup IPC handlers for bi-directional communication
-    this.setupIpcHandlers();
+                case "ApplicationStatus:ListenForStatus":
+                    if (this.applicationStatusIsRunning) {
+                        ApplicationStatus.getInstance().StopListening();
+                    }
 
-  }
+                    if (!message.payload || !message.payload.applicationName || !message.payload.windowTitle) {
+                        throw new Error("Invalid payload: Expected applicationName and windowTitle");
+                    }
 
-  private setupIpcHandlers() {
-    ipcMain.on(RenderRequestChannel, (_, message: RenderMessage) => {
-      switch (message.request) {
-        case "ApplicationScanner:StartListener":
-          if (this.applicationScannerIsRunning) {
-            NativeApplicationScanner.StopListener();
-          }
-          NativeApplicationScanner.ListenForApplications((scannedApplications) => {
-            this.window.webContents.send(ApplicationScannerChannel, scannedApplications)
-          });
-          this.applicationScannerIsRunning = true;
-          break;
-        case "ApplicationScanner:StopListener":
-          NativeApplicationScanner.StopListener();
-          this.applicationScannerIsRunning = false;
-          break;
-        default:
-          throw new Error(
-            `Main thread received unhandled request type on ipc channel ${RenderRequestChannel}: ${message.request}`
-          );
-      }
-    });
-  }
+                    ApplicationStatus.getInstance().ListenForStatus(
+                        message.payload.applicationName,
+                        message.payload.windowTitle,
+                        (status) => {
+                            console.log("Application Status Update:", status);
+                            this.window.webContents.send(ApplicationStatusChannel, status);
+                        }
+                    );
 
+                    this.applicationStatusIsRunning = true;
+                    break;
+
+                case "ApplicationStatus:StopListener":
+                    ApplicationStatus.getInstance().StopListening();
+                    this.applicationStatusIsRunning = false;
+                    break;
+
+                default:
+                    throw new Error(
+                        `Main thread received unhandled request type on IPC channel ${RenderRequestChannel}: ${message.request}`
+                    );
+            }
+        });
+    }
+
+    private startApplicationStatusMonitor() {
+        const appName = process.platform === "win32" ? "Notepad" : "TextEdit";
+        const windowTitle = process.platform === "win32" ? "Untitled - Notepad" : "Untitled";
+
+        console.log(`Starting monitoring for ${appName}`);
+
+        ApplicationStatus.getInstance().ListenForStatus(appName, windowTitle, (status) => {
+            console.log("Application Status Update:", appName, windowTitle, status);
+        });
+    }
 }

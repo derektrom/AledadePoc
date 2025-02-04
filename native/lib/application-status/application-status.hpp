@@ -36,8 +36,10 @@ protected:
     std::atomic<bool> running{ false };
     ApplicationInfo currentApp;
     Napi::ThreadSafeFunction callback;
+
 private:
     void ListenForStatus(const Napi::CallbackInfo& info);
+    void ListenForStatus(const Napi::Object& appInfo, const Napi::Function& callback);
     void StopListening(const Napi::CallbackInfo& info);
 
     std::thread listenerThread;
