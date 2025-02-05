@@ -11,13 +11,13 @@
 class PlatformNativeApplicationStatus {
 public:
     virtual ~PlatformNativeApplicationStatus() {
-        StopListener();
+        StopListening();
     }
     virtual void ListenForStatus(ApplicationInfo appInfo, Napi::ThreadSafeFunction&& callback) {
         _callback = std::move(callback);
         _thread = std::thread(&PlatformNativeApplicationStatus::MonitorApplication, this, appInfo);
     }
-    virtual void StopListener() {
+    virtual void StopListening() {
         _callback = NULL;
     }
 protected:
@@ -39,8 +39,7 @@ protected:
 
 private:
     void ListenForStatus(const Napi::CallbackInfo& info);
-    void ListenForStatus(const Napi::Object& appInfo, const Napi::Function& callback);
-    void StopListening(const Napi::CallbackInfo& info);
+	void StopListening(const Napi::CallbackInfo& info);
 
     std::thread listenerThread;
     std::mutex mutex;

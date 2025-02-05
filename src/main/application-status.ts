@@ -25,15 +25,15 @@ export class ApplicationStatus {
 
         NativeApplicationStatus.ListenForStatus(
             appInfo,
-            (status: unknown) => {
-                callback(status as ApplicationStatusType);
+            (status: ApplicationStatusType) => {
+                callback(status);
             }
         );
     }
 
     public StopListening(): void {
         if (!this.running) return;
-        NativeApplicationStatus.StopListener();
+        NativeApplicationStatus.StopListening();
         this.running = false;
     }
 }

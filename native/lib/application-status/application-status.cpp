@@ -62,5 +62,4 @@ void NativeApplicationStatus::StopListening(const Napi::CallbackInfo& info) {
     callback = nullptr;
 }
 
-
-            
+NODE_API_ADDON(NativeApplicationStatus)           

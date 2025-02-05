@@ -40,7 +40,7 @@ declare interface NativeApplicationStatusModule {
         appInfo: ApplicationInfo,
         callback: (status: ApplicationStatus) => void 
     ) => void;
-    StopListener: () => void;
+    StopListening: () => void;
 }
 
 ////

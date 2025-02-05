@@ -5,13 +5,13 @@ export type RenderRequests =
     | "ApplicationScanner:StartListener"
     | "ApplicationScanner:StopListener"
     | "ApplicationStatus:ListenForStatus"
-    | "ApplicationStatus:StopListener";
+    | "ApplicationStatus:StopListening";
 
 export type RenderMessage =
     | { request: "ApplicationScanner:StartListener" }
     | { request: "ApplicationScanner:StopListener" }
     | { request: "ApplicationStatus:ListenForStatus"; payload: ApplicationInfo }
-    | { request: "ApplicationStatus:StopListener" };
+    | { request: "ApplicationStatus:StopListening" };
 
 // Responses / callbacks main -> renderer
 export const ApplicationScannerChannel = "applicationScannerChannel";
