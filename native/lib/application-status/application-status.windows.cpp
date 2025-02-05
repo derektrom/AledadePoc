@@ -46,6 +46,6 @@ void NativeApplicationStatus::MonitorApplication() {
             jsCallback.Call({ result });
             });
 
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::this_thread::sleep_for(std::chrono::milliseconds(pollTime.load()));
     }
 }

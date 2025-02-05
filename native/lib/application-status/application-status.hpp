@@ -43,6 +43,7 @@ private:
 
     std::thread listenerThread;
     std::mutex mutex;
+    std::atomic<int> pollTime{ 3000 };
 
     void MonitorApplication();
 };
