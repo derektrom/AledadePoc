@@ -49,3 +49,15 @@ void NativeApplicationStatus::MonitorApplication() {
         std::this_thread::sleep_for(std::chrono::milliseconds(pollTime.load()));
     }
 }
+
+void NativeApplicationStatus::SetPollingTime(const Napi::CallbackInfo& info)
+{
+    if (info.Length() < 1)
+    {
+        Napi::TypeError::New(info.Env(), "No value passed").ThrowAsJavaScriptException();
+    }
+	const int pollingTime = info[0].As<Napi::Number>().Int32Value();
+
+    pollTime.store(pollingTime);
+}
+

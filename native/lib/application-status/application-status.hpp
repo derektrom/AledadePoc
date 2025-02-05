@@ -32,6 +32,8 @@ class NativeApplicationStatus : public Napi::Addon<NativeApplicationStatus> {
 public:
     NativeApplicationStatus(Napi::Env env, Napi::Object exports);
 
+    void SetPollingTime(const Napi::CallbackInfo& info);
+
 protected:
     std::atomic<bool> running{ false };
     ApplicationInfo currentApp;

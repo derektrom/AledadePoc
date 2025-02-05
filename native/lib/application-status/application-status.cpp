@@ -7,7 +7,8 @@ NativeApplicationStatus::NativeApplicationStatus(Napi::Env env, Napi::Object exp
         exports,
         {
             InstanceMethod("ListenForStatus", &NativeApplicationStatus::ListenForStatus),
-            InstanceMethod("StopListening", &NativeApplicationStatus::StopListening)
+            InstanceMethod("StopListening", &NativeApplicationStatus::StopListening),
+            InstanceMethod("SetPollingTime", &NativeApplicationStatus::SetPollingTime)
         }
     );
 }
