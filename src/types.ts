@@ -5,13 +5,15 @@ export type RenderRequests =
     | "ApplicationScanner:StartListener"
     | "ApplicationScanner:StopListener"
     | "ApplicationStatus:ListenForStatus"
-    | "ApplicationStatus:StopListening";
+    | "ApplicationStatus:StopListening"
+    | "ApplicationStatus:SetPollingTime";
 
 export type RenderMessage =
     | { request: "ApplicationScanner:StartListener" }
     | { request: "ApplicationScanner:StopListener" }
     | { request: "ApplicationStatus:ListenForStatus"; payload: ApplicationInfo }
-    | { request: "ApplicationStatus:StopListening" };
+    | { request: "ApplicationStatus:StopListening" }
+    | { request: "ApplicationStatus:SetPollingTime"; payload?: number };
 
 // Responses / callbacks main -> renderer
 export const ApplicationScannerChannel = "applicationScannerChannel";
@@ -38,3 +40,4 @@ export interface ApplicationStatus {
 
 // Callback Type
 export type ApplicationStatusCallback = (status: ApplicationStatus) => void;
+export type ApplicationStatusPollingCallback = (pollingTime: number) => void;

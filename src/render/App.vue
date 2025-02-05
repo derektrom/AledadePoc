@@ -15,6 +15,24 @@
                 </option>
             </select>
 
+            <!-- Polling Time Input -->
+            <div>
+                <label for="pollingTimeId"><strong>Set Polling Time (ms):</strong></label>
+                <input type="number"
+                       id="pollingTimeId"
+                       v-model="pollingTime"
+                       :min="minPollingTime"
+                       :max="maxPollingTime"
+                       @input="validatePollingTime" />
+                <button @click="submitPollingTime">
+                    Submit
+                </button>
+                <p v-if="pollingError" class="error-message">
+                    Polling time must be between {{ minPollingTime }} and {{ maxPollingTime }} ms.
+                </p>
+            </div>
+
+            <!-- Application Status -->
             <div v-if="selectedApplication">
                 <h2>Monitoring: {{ selectedApplication.procedureName }}</h2>
                 <p><strong>Window Title:</strong> {{ selectedApplication.windowTitle }}</p>
@@ -34,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-    import { computed, onMounted, ref} from 'vue';
+    import { computed, onMounted, ref } from 'vue';
 
     const hasReceivedApplications = ref(false);
     const scannedApplications = ref<ScannedApplications>([]);
@@ -42,6 +60,12 @@
 
     const selectedApplication = ref<ApplicationInfo | null>(null);
     const applicationStatus = ref<ApplicationStatus | null>(null);
+
+    // Polling Time State
+    const pollingTime = ref(3000);
+    const minPollingTime = 500;
+    const maxPollingTime = 10000;
+    const pollingError = ref(false);
 
     onMounted(() => {
         console.log("Vue Mounted: Starting application scanner...");
@@ -59,25 +83,39 @@
     });
 
     const onApplicationChange = () => {
-        console.log("onApplicationChange triggered:", selectedApplication.value);
         if (selectedApplication.value) {
             startMonitoring(selectedApplication.value);
         }
     };
 
-    
     const startMonitoring = (app: ApplicationInfo) => {
-        console.log("Stopping previous monitoring...");
         window.ApplicationMonitorApi.StopApplicationStatusMonitor();
+        //Set a small timeout for threads switching
+        setTimeout(() => {
+            window.ApplicationMonitorApi.StartApplicationStatusMonitor(
+                { applicationName: app.procedureName, windowTitle: app.windowTitle },
+                (status) => {
+                    applicationStatus.value = status;
+                }
+            );
+        }, 100);
+    };
 
-        console.log("Starting monitoring for:", app);
-        window.ApplicationMonitorApi.StartApplicationStatusMonitor(
-            { applicationName: app.procedureName, windowTitle: app.windowTitle },
-            (status) => {
-                console.log("Status update received:", status);
-                applicationStatus.value = status;
-            }
-        );
+    // Validate polling time input
+    const validatePollingTime = () => {
+        pollingError.value =
+            pollingTime.value < minPollingTime || pollingTime.value > maxPollingTime;
+    };
+
+    // Submit polling time if valid
+    const submitPollingTime = () => {
+        validatePollingTime();
+        if (!pollingError.value) {
+
+            window.ApplicationMonitorApi.SetPollingTime(pollingTime.value, (updatedTime) => {
+                pollingTime.value = updatedTime;
+            });
+        }
     };
 </script>
 
@@ -85,7 +123,14 @@
     li {
         line-height: 1.5rem;
     }
-        li + li {
-            padding-top: 1rem;
-        }
+
+    li + li {
+        padding-top: 1rem;
+    }
+
+    .error-message {
+        color: red;
+        font-weight: bold;
+        margin-top: 5px;
+    }
 </style>

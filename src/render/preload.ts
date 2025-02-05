@@ -35,6 +35,23 @@ export const ApplicationMonitorApi = {
     StopApplicationStatusMonitor: () => {
         const message: RenderMessage = { request: "ApplicationStatus:StopListening" };
         ipcRenderer.send(RenderRequestChannel, message);
+    },
+
+    request: "ApplicationStatus:SetPollingTime",
+
+    SetPollingTime: (pollingTime: number, callback?: (updatedTime: number) => void) => {
+
+        ipcRenderer.once("pollingTimeUpdated", (_, updatedTime: number) => {
+            if (callback) {
+                callback(updatedTime);
+            }
+        });
+
+        const message: RenderMessage = {
+            request: "ApplicationStatus:SetPollingTime",
+            payload: pollingTime
+        };
+        ipcRenderer.send(RenderRequestChannel, message);
     }
 };
 

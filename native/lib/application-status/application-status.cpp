@@ -7,13 +7,14 @@ NativeApplicationStatus::NativeApplicationStatus(Napi::Env env, Napi::Object exp
         exports,
         {
             InstanceMethod("ListenForStatus", &NativeApplicationStatus::ListenForStatus),
-            InstanceMethod("StopListening", &NativeApplicationStatus::StopListening)
+            InstanceMethod("StopListening", &NativeApplicationStatus::StopListening),
+            InstanceMethod("SetPollingTime", &NativeApplicationStatus::SetPollingTime)
         }
     );
 }
 
 void NativeApplicationStatus::ListenForStatus(const Napi::CallbackInfo& info) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
 
     auto env = info.Env();
 
@@ -60,6 +61,32 @@ void NativeApplicationStatus::StopListening(const Napi::CallbackInfo& info) {
         listenerThread.join();
     }
     callback = nullptr;
+}
+
+void NativeApplicationStatus::SetPollingTime(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 1 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Expected a number (polling time in ms)").ThrowAsJavaScriptException();
+        return;
+    }
+
+    int newPollTime = info[0].As<Napi::Number>().Int32Value();
+
+    if (newPollTime < 500 || newPollTime > 10000) {
+        Napi::TypeError::New(env, "Polling time must be between 500 and 10,000ms").ThrowAsJavaScriptException();
+        return;
+    }
+
+    pollTime.store(newPollTime); 
+
+    Napi::Function consoleLog = env.Global().Get("console").As<Napi::Object>().Get("log").As<Napi::Function>();
+    consoleLog.Call({ Napi::String::New(env, "Updated polling time to: " + std::to_string(newPollTime) + "ms") });
+
+    if (info.Length() > 1 && info[1].IsFunction()) {
+        Napi::Function callback = info[1].As<Napi::Function>();
+        callback.Call(env.Global(), { Napi::Number::New(env, newPollTime) });
+    }
 }
 
 NODE_API_ADDON(NativeApplicationStatus)           

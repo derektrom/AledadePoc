@@ -11,7 +11,8 @@ public:
 
 void NativeApplicationStatus::MonitorApplication() {
     while (running) {
-        HWND hwnd = FindWindow(NULL, currentApp.windowTitle.c_str());
+        std::this_thread::sleep_for(std::chrono::milliseconds(pollTime.load()));
+    	HWND hwnd = FindWindow(NULL, currentApp.windowTitle.c_str());
         ApplicationStatus appStatus;
 
         if (!hwnd) {
@@ -45,7 +46,6 @@ void NativeApplicationStatus::MonitorApplication() {
             }
             jsCallback.Call({ result });
             });
-
-        std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 }
+

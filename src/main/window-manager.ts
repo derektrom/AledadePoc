@@ -83,7 +83,19 @@ export class WindowManager {
                     ApplicationStatus.getInstance().StopListening();
                     this.applicationStatusIsRunning = false;
                     break;
+       
+                case "ApplicationStatus:SetPollingTime": {
 
+                    if (typeof message.payload !== "number" || isNaN(message.payload)) {
+                        return;
+                    }
+
+                    ApplicationStatus.getInstance().SetPollingTime(message.payload, (updatedTime) => {
+                        _.sender.send("pollingTimeUpdated", updatedTime);
+                    });
+
+                    break;
+                }
                 default:
                     throw new Error(
                         `Main thread received unhandled request type on IPC channel ${RenderRequestChannel}: ${message.request}`

@@ -12,15 +12,7 @@
 
 class WindowsApplicationStatus : public NativeApplicationStatus {
 public:
-    WindowsApplicationStatus(Napi::Env env, Napi::Object exports) : Napi::Addon<WindowsApplicationStatus>(env, exports) {
-        DefineAddon(
-            exports,
-            {
-                InstanceMethod("ListenForStatus", &WindowsApplicationStatus::ListenForStatus),
-                InstanceMethod("StopListener", &WindowsApplicationStatus::StopListener)
-            }
-        );
-    }
+    WindowsApplicationStatus() {}
     void ListenForStatus(const Napi::CallbackInfo& info);
     void StopListener(const Napi::CallbackInfo& info);
     void MonitorApplication();
