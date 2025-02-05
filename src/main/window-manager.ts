@@ -39,8 +39,6 @@ export class WindowManager {
         });
 
         this.setupIpcHandlers();
-
-        //this.startApplicationStatusMonitor();
     }
 
     private setupIpcHandlers() {

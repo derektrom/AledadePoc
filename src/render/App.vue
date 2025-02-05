@@ -65,7 +65,7 @@
         }
     };
 
-    // Stop previous monitoring & start monitoring new app
+    
     const startMonitoring = (app: ApplicationInfo) => {
         console.log("Stopping previous monitoring...");
         window.ApplicationMonitorApi.StopApplicationStatusMonitor();
@@ -75,7 +75,7 @@
             { applicationName: app.procedureName, windowTitle: app.windowTitle },
             (status) => {
                 console.log("Status update received:", status);
-                applicationStatus.value = status; // Vue will now reactively update UI
+                applicationStatus.value = status;
             }
         );
     };
