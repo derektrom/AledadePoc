@@ -39,8 +39,6 @@ export class WindowManager {
         });
 
         this.setupIpcHandlers();
-
-        this.startApplicationStatusMonitor();
     }
 
     private setupIpcHandlers() {
@@ -74,7 +72,6 @@ export class WindowManager {
                         message.payload.applicationName,
                         message.payload.windowTitle,
                         (status) => {
-                            console.log("Application Status Update:", status);
                             this.window.webContents.send(ApplicationStatusChannel, status);
                         }
                     );
@@ -82,7 +79,7 @@ export class WindowManager {
                     this.applicationStatusIsRunning = true;
                     break;
 
-                case "ApplicationStatus:StopListener":
+                case "ApplicationStatus:StopListening":
                     ApplicationStatus.getInstance().StopListening();
                     this.applicationStatusIsRunning = false;
                     break;
@@ -92,17 +89,6 @@ export class WindowManager {
                         `Main thread received unhandled request type on IPC channel ${RenderRequestChannel}: ${message.request}`
                     );
             }
-        });
-    }
-
-    private startApplicationStatusMonitor() {
-        const appName = process.platform === "win32" ? "Notepad" : "TextEdit";
-        const windowTitle = process.platform === "win32" ? "Untitled - Notepad" : "Untitled";
-
-        console.log(`Starting monitoring for ${appName}`);
-
-        ApplicationStatus.getInstance().ListenForStatus(appName, windowTitle, (status) => {
-            console.log("Application Status Update:", appName, windowTitle, status);
         });
     }
 }

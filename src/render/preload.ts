@@ -33,7 +33,7 @@ export const ApplicationMonitorApi = {
 
     // Stop monitoring the application status
     StopApplicationStatusMonitor: () => {
-        const message: RenderMessage = { request: "ApplicationStatus:StopListener" };
+        const message: RenderMessage = { request: "ApplicationStatus:StopListening" };
         ipcRenderer.send(RenderRequestChannel, message);
     }
 };

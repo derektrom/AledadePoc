@@ -49,5 +49,3 @@ void NativeApplicationStatus::MonitorApplication() {
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 }
-
-NODE_API_ADDON(NativeApplicationStatus)
