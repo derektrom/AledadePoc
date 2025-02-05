@@ -41,6 +41,10 @@ declare interface NativeApplicationStatusModule {
         callback: (status: ApplicationStatus) => void 
     ) => void;
     StopListening: () => void;
+    SetPollingTime: (
+        pollingNumber: number,
+        callback?: (pollingTime: number) => void
+    ) => void;
 }
 
 ////

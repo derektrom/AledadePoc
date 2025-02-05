@@ -36,4 +36,15 @@ export class ApplicationStatus {
         NativeApplicationStatus.StopListening();
         this.running = false;
     }
+
+    public SetPollingTime(pollingTime: number, callback?: (updatedTime: number) => void): void {
+        if (!this.running) return;
+
+        NativeApplicationStatus.SetPollingTime(pollingTime);
+
+        if (callback) {
+            callback(pollingTime);
+        }
+        this.running = true;
+    }
 }
