@@ -12,7 +12,7 @@ public:
 void NativeApplicationStatus::MonitorApplication() {
     while (running) {
         std::this_thread::sleep_for(std::chrono::milliseconds(pollTime.load()));
-    	HWND hwnd = FindWindow(NULL, currentApp.windowTitle.c_str());
+        HWND hwnd = FindWindow(NULL, currentApp.windowTitle.c_str());
         ApplicationStatus appStatus;
 
         if (!hwnd) {
@@ -33,18 +33,21 @@ void NativeApplicationStatus::MonitorApplication() {
             }
         }
 
+        // Ensure running flag is still set before invoking callback
+        if (!running) return;
+
         callback.BlockingCall([&](Napi::Env env, Napi::Function jsCallback) {
-            Napi::Object result = Napi::Object::New(env);
-            result.Set("status", appStatus.status);
-            if (appStatus.dimensions) {
-                Napi::Object dim = Napi::Object::New(env);
-                dim.Set("x", appStatus.dimensions->x);
-                dim.Set("y", appStatus.dimensions->y);
-                dim.Set("width", appStatus.dimensions->width);
-                dim.Set("height", appStatus.dimensions->height);
-                result.Set("dimensions", dim);
-            }
-            jsCallback.Call({ result });
+                Napi::Object result = Napi::Object::New(env);
+                result.Set("status", appStatus.status);
+                if (appStatus.dimensions) {
+                    Napi::Object dim = Napi::Object::New(env);
+                    dim.Set("x", appStatus.dimensions->x);
+                    dim.Set("y", appStatus.dimensions->y);
+                    dim.Set("width", appStatus.dimensions->width);
+                    dim.Set("height", appStatus.dimensions->height);
+                    result.Set("dimensions", dim);
+                }
+                jsCallback.Call({ result });
             });
     }
 }

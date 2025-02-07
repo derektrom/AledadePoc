@@ -52,10 +52,10 @@
 </template>
 
 <script setup lang="ts">
-    import { computed, onMounted, ref } from 'vue';
+    import { computed, onMounted, ref, watch } from 'vue';
 
     const hasReceivedApplications = ref(false);
-    const scannedApplications = ref<ScannedApplications>([]);
+    const scannedApplications = ref<ApplicationInfo[]>([]);
     const hasScannedApplications = computed(() => scannedApplications.value.length > 0);
 
     const selectedApplication = ref<ApplicationInfo | null>(null);
@@ -66,6 +66,8 @@
     const minPollingTime = 500;
     const maxPollingTime = 10000;
     const pollingError = ref(false);
+
+    const isInitialized = ref(false); // Flag to prevent early execution of watch
 
     onMounted(() => {
         console.log("Vue Mounted: Starting application scanner...");
@@ -79,18 +81,20 @@
                 selectedApplication.value = newScannedApplications[0];
                 startMonitoring(selectedApplication.value);
             }
+
+            isInitialized.value = true; // Allow watch to run after this point
         });
     });
 
     const onApplicationChange = () => {
         if (selectedApplication.value) {
             startMonitoring(selectedApplication.value);
+            submitPollingTime();
         }
     };
 
     const startMonitoring = (app: ApplicationInfo) => {
         window.ApplicationMonitorApi.StopApplicationStatusMonitor();
-        //Set a small timeout for threads switching
         setTimeout(() => {
             window.ApplicationMonitorApi.StartApplicationStatusMonitor(
                 { applicationName: app.procedureName, windowTitle: app.windowTitle },
@@ -101,17 +105,37 @@
         }, 100);
     };
 
+    // Watch for changes, but only after applications have been initialized
+    watch(scannedApplications, (newScannedApplications) => {
+        if (!isInitialized.value) return; // Prevent premature execution
+
+        if (!hasReceivedApplications.value || newScannedApplications.length === 0) {
+            window.ApplicationMonitorApi.StopApplicationStatusMonitor();
+            selectedApplication.value = null;
+            return;
+        }
+
+        const appExists = newScannedApplications.some(app => app.procedureName === selectedApplication.value?.procedureName);
+
+        if (!appExists) {
+            window.ApplicationMonitorApi.StopApplicationStatusMonitor();
+            selectedApplication.value = newScannedApplications.length > 0 ? newScannedApplications[0] : null;
+
+            if (selectedApplication.value) {
+                startMonitoring(selectedApplication.value);
+            }
+        }
+    });
+
     // Validate polling time input
     const validatePollingTime = () => {
-        pollingError.value =
-            pollingTime.value < minPollingTime || pollingTime.value > maxPollingTime;
+        pollingError.value = pollingTime.value < minPollingTime || pollingTime.value > maxPollingTime;
     };
 
     // Submit polling time if valid
     const submitPollingTime = () => {
         validatePollingTime();
         if (!pollingError.value) {
-
             window.ApplicationMonitorApi.SetPollingTime(pollingTime.value, (updatedTime) => {
                 pollingTime.value = updatedTime;
             });
