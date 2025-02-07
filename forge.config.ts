@@ -11,7 +11,8 @@ const useDirName = path.resolve();
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    extraResource: path.resolve(useDirName, "build/Release/native-application-scanner.node")
+        extraResource: [path.resolve(useDirName, "build/Release/native-application-scanner.node"),
+            path.resolve(useDirName, "build/Release/native-application-status.node")]
   },
   rebuildConfig: {},
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin'])],
