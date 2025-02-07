@@ -53,14 +53,25 @@ void NativeApplicationStatus::ListenForStatus(const Napi::CallbackInfo& info) {
     consoleLog.Call({ Napi::String::New(env, "Successfully started NativeApplicationStatus") });
 }
 
-
 void NativeApplicationStatus::StopListening(const Napi::CallbackInfo& info) {
     std::lock_guard<std::mutex> lock(mutex);
+
+    if (!running) return;
+
     running = false;
+
     if (listenerThread.joinable()) {
         listenerThread.join();
     }
-    callback = nullptr;
+
+    // Release callback to free memory
+    if (callback) {
+        callback.Release();
+        callback = nullptr;
+    }
+
+    Napi::Function consoleLog = info.Env().Global().Get("console").As<Napi::Object>().Get("log").As<Napi::Function>();
+    consoleLog.Call({ Napi::String::New(info.Env(), "Stopped application status monitoring") });
 }
 
 void NativeApplicationStatus::SetPollingTime(const Napi::CallbackInfo& info) {
@@ -78,7 +89,7 @@ void NativeApplicationStatus::SetPollingTime(const Napi::CallbackInfo& info) {
         return;
     }
 
-    pollTime.store(newPollTime); 
+    pollTime.store(newPollTime);
 
     Napi::Function consoleLog = env.Global().Get("console").As<Napi::Object>().Get("log").As<Napi::Function>();
     consoleLog.Call({ Napi::String::New(env, "Updated polling time to: " + std::to_string(newPollTime) + "ms") });
